@@ -1,6 +1,6 @@
 - 👋 Hi, I’m yash 
 - 👀 I’m interested in ...coding and music
-- 🌱 I’m currently learning ...C language
+- 🌱 I’m currently learning ...Javascript
 - 💞️ I’m looking to collaborate on ...many things
 - 📫 How to reach me ...my insta id mr_yasharma
 - ⚡ Fun fact: .. I AM 1ST YEAR STUDENT
