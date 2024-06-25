@@ -1,0 +1,116 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+   
+}
+
+nav {
+    background-color: #333;
+}
+
+.navbar {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 8rem;
+    width: 100%;
+}
+
+.navbar{
+   display: flex;
+   align-items: center;
+   justify-content: space-around;
+   font-size: larger;
+}
+
+.navbar li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 18px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.navbar li a:hover {
+    text-decoration: underline;
+    cursor: pointer;
+    background-color: #111;
+}
+.logo{
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+    zoom:2;
+}
+
+.box{
+display: flex;
+gap: 4px;
+padding: 18px;
+gap: 12px;
+margin-top: 2px;
+
+}
+.box>img{
+    width: 22rem;
+    height: 12rem;
+    border: 2px solid black;
+    border-radius:10px;
+    object-fit:fill;
+}
+
+.box>img:hover{
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
+    cursor: pointer;
+
+}
+.hr{
+    width: 100%;
+    background-color: gray;
+    height: 2px;
+}
+
+footer {
+    height: 1rem;
+    background-color: #000;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+    width: 100%;
+    bottom: 0;
+}
+
+footer p {
+    margin: 0;
+}
+
+.barcode{
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   padding: 5px;
+}
+
+.barcode>img{
+   box-shadow: rgb(38, 57, 77) 0px 20px 30px -10px;;
+    padding: 10px;
+    border: 2px solid black;
+    height: 50vh;
+    width: 21vw;
+    transition: 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+}
+.barcode>img:hover{
+    padding: 0;
+    cursor: pointer;
+    height: 55vh;
+    width: 25vw;
+    object-fit: fill;
+}
+h2{
+    text-align: center;
+}
