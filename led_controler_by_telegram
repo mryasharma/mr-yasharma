@@ -1,0 +1,203 @@
+CODE IN C++
+
+#include <WiFi.h>
+#include <UniversalTelegramBot.h>
+#include <WiFiClientSecure.h>
+#include <Arduino.h>
+
+// Replace with your network credentials
+const char* ssid = "wifi-name";
+const char* password = "wifi-password";
+
+// Replace with your bot token and chat ID
+const char* botToken = "";
+const char* chatID = "";
+
+// Variables to store the current output states
+bool ledStates[] = { false, false, false, false }; // States for GPIO 14, 27, 26, 25
+
+// Assign output variables to GPIO pins
+const int outputPins[] = { 14, 27, 26, 25 };
+
+// Telegram Bot instance
+WiFiClientSecure client;
+UniversalTelegramBot bot(botToken, client);
+
+// Function to toggle LED state
+void toggleLED(int pinIndex) {
+  if (ledStates[pinIndex]) {
+    ledcWrite(pinIndex, 0); // Turn LED off
+    ledStates[pinIndex] = false;
+  } else {
+    ledcWrite(pinIndex, 255); // Turn LED on
+    ledStates[pinIndex] = true;
+  }
+}
+
+// Function to set LED brightness
+void setBrightness(int pinIndex, int brightness) {
+  int pwmValue = map(brightness, 0, 100, 0, 255); // Map percentage to PWM value
+  ledcWrite(pinIndex, pwmValue);
+  ledStates[pinIndex] = true; // Set the LED state to ON for simplicity
+}
+
+// Function to turn all LEDs on
+void turnAllLEDsOn() {
+  for (int i = 0; i < 4; i++) {
+    ledcWrite(i, 255);  // Turn each LED on
+    ledStates[i] = true;
+  }
+}
+
+// Function to turn all LEDs off
+void turnAllLEDsOff() {
+  for (int i = 0; i < 4; i++) {
+    ledcWrite(i, 0);  // Turn each LED off
+    ledStates[i] = false;
+  }
+}
+
+// Function to handle Telegram bot messages
+void handleTelegramMessages(int messageCount) {
+  for (int i = 0; i < messageCount; i++) {
+    String chat_id = bot.messages[i].chat_id;
+    String text = bot.messages[i].text;
+
+    // Ensure only messages from the authorized chat ID are processed
+    if (chat_id != chatID) {
+      bot.sendMessage(chat_id, "Unauthorized access!", "");
+      continue;
+    }
+
+    // Check if the command is a valid LED number (1-4)
+    if (text.length() == 1 && text.toInt() >= 1 && text.toInt() <= 4) {
+      int ledNumber = text.toInt();
+      toggleLED(ledNumber - 1); // Toggle the LED (array index is 0-based)
+      bot.sendMessage(chat_id, "Toggled LED " + String(ledNumber) + 
+                                  (ledStates[ledNumber - 1] ? " ON." : " OFF."), "");
+    } else if (text.startsWith("/brightness")) {
+      // Handle brightness commands
+      int ledNumber = text.substring(11, 12).toInt(); // Get LED number
+      int brightness = text.substring(12).toInt();   // Get brightness value
+
+      if (ledNumber >= 1 && ledNumber <= 4 && brightness >= 0 && brightness <= 100) {
+        setBrightness(ledNumber - 1, brightness);
+        bot.sendMessage(chat_id, "Set brightness of LED " + String(ledNumber) + 
+                                    " to " + String(brightness) + "%.", "");
+      } else {
+        bot.sendMessage(chat_id, "Invalid brightness command. Use /brightnessXYY (e.g., /brightness150 for LED 1 at 50%).", "");
+      }
+    } else if (text == "all on") {
+      // Handle "all on" command
+      turnAllLEDsOn();
+      bot.sendMessage(chat_id, "All LEDs are now ON.", "");
+    } else if (text == "all off") {
+      // Handle "all off" command
+      turnAllLEDsOff();
+      bot.sendMessage(chat_id, "All LEDs are now OFF.", "");
+    } else {
+      bot.sendMessage(chat_id, "Invalid command. Send 1, 2, 3, or 4 to toggle LEDs, /brightnessXYY for brightness control, or 'all on'/'all off' to control all LEDs.", "");
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(115200); // Start serial communication for debugging
+
+  // Initialize GPIO pins and setup PWM channels
+  for (int i = 0; i < 4; i++) {
+    pinMode(outputPins[i], OUTPUT);        // Set pin as output
+    digitalWrite(outputPins[i], LOW);     // Set initial state to LOW
+    ledcSetup(i, 5000, 8);                // Configure PWM channel: channel, frequency, resolution
+    ledcAttachPin(outputPins[i], i);      // Attach pin to PWM channel
+  }
+
+  // Connect to Wi-Fi network
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected.");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  // Telegram bot setup
+  client.setInsecure(); // Disable certificate validation
+}
+
+void loop() {
+  // Handle Telegram bot messages
+  int messageCount = bot.getUpdates(bot.last_message_received + 1);
+  if (messageCount > 0) {
+    handleTelegramMessages(messageCount);
+  }
+}  
+
+DIAGRAM JSON
+{
+  "version": 1,
+  "author": "Yash Sharma",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 38.4, "left": -52.76, "attrs": {} },
+    { "type": "wokwi-led", "id": "led1", "top": 15.6, "left": 426.2, "attrs": { "color": "red" } },
+    { "type": "wokwi-led", "id": "led2", "top": 6, "left": 349.4, "attrs": { "color": "red" } },
+    { "type": "wokwi-led", "id": "led3", "top": 6, "left": 224.6, "attrs": { "color": "red" } },
+    { "type": "wokwi-led", "id": "led4", "top": 6, "left": 119, "attrs": { "color": "red" } },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 100.8,
+      "left": 114.65,
+      "rotate": 90,
+      "attrs": { "value": "270" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r2",
+      "top": 110.4,
+      "left": 421.85,
+      "rotate": 90,
+      "attrs": { "value": "270" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r3",
+      "top": 110.4,
+      "left": 345.05,
+      "rotate": 90,
+      "attrs": { "value": "270" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r4",
+      "top": 100.8,
+      "left": 220.25,
+      "rotate": 90,
+      "attrs": { "value": "270" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:GND.2", "led4:C", "black", [ "v0", "h86.4" ] ],
+    [ "led3:C", "esp:GND.2", "black", [ "v0" ] ],
+    [ "led2:C", "esp:GND.2", "black", [ "v0" ] ],
+    [ "led1:C", "esp:GND.2", "black", [ "v0" ] ],
+    [ "led4:A", "r1:1", "green", [ "v0" ] ],
+    [ "esp:14", "r1:2", "green", [ "h0" ] ],
+    [ "led3:A", "r4:1", "green", [ "v0" ] ],
+    [ "led2:A", "r3:1", "green", [ "v0" ] ],
+    [ "led1:A", "r2:1", "green", [ "v0" ] ],
+    [ "esp:27", "r4:2", "green", [ "h0" ] ],
+    [ "esp:26", "r3:2", "green", [ "h0" ] ],
+    [ "esp:25", "r2:2", "green", [ "v0", "h-38.25", "v124.8", "h-19.2" ] ]
+  ],
+  "dependencies": {}
+}
